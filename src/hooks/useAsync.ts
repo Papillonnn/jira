@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useCallback, useState } from "react"
+import { useMountedRef } from "utils"
 
 interface State<D> {
     error: Error | null;
@@ -25,41 +26,58 @@ export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defa
         ...defaultInitialState,
         ...initialState
     })
+    const [retry, setRetry] = useState(() => () => { })
+    const mountedRef = useMountedRef()
 
-    const setData = (data: D) => setState({
-        data,
-        status: 'success',
-        error: null
-    })
+    const setData = useCallback(
+        (data: D) => setState({
+            data,
+            status: 'success',
+            error: null
+        }),
+        []
+    )
 
-    const setError = (error: Error) => setState({
-        data: null,
-        status: 'error',
-        error
-    })
-    
-    const run = (promise: Promise<D>) => {
-        if (!promise || !promise.then) {
-            throw new Error('请传入Promise类型的数据')
-        }
-        setState({
-            ...state,
-            status: 'loading'
-        })
-        return promise.then(data => {
-            setData(data)
-            return data
-        }).catch(error => {
-            console.log(error)
-            console.log(config)
-            // catch会消化异常，如果不主动抛出，外面是接收不到异常的
-            setError(error)
-            if (config.throwOnError) {
-                return Promise.reject(error)
+    const setError = useCallback(
+        (error: Error) => setState({
+            data: null,
+            status: 'error',
+            error
+        }),
+        []
+    )
+
+    const run = useCallback(
+        (promise: Promise<D>, runConfig?: { retry: () => Promise<D> }) => {
+            if (!promise || !promise.then) {
+                throw new Error('请传入Promise类型的数据')
             }
-            return error
-        })
-    }
+            setRetry(() => () => {
+                if (runConfig?.retry) {
+                    run(runConfig?.retry(), runConfig)
+                }
+            })
+            setState(prevState => ({
+                ...prevState,
+                status: 'loading'
+            }))
+            return promise.then(data => {
+                // 组件处于挂载状态时才setData
+                if (mountedRef.current) {
+                    setData(data)
+                }
+                return data
+            }).catch(error => {
+                // catch会消化异常，如果不主动抛出，外面是接收不到异常的
+                setError(error)
+                if (config.throwOnError) {
+                    return Promise.reject(error)
+                }
+                return error
+            })
+        },
+        [config.throwOnError, mountedRef, setData, setError]
+    )
 
     return {
         isIdle: state.status === 'idle',
@@ -69,6 +87,8 @@ export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defa
         run,
         setData,
         setError,
+        // retry调用时，重新跑一遍run，让state刷新
+        retry,
         ...state
     }
 }

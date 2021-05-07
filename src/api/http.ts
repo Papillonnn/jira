@@ -1,6 +1,7 @@
 import qs from "qs"
 import axios, { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import { useLogin } from "context/LoginContext";
+import { useCallback } from "react";
 
 const baseUrl = process.env.REACT_APP_API_URL;
 
@@ -41,5 +42,8 @@ export const http = async (url: string, { params, token, ...customConfig }: Conf
 // 自动携带token
 export const useHttp = () => {
     const { user } = useLogin()
-    return (...[url, config]: Parameters<typeof http>) => http(url, {...config, token: user?.token})
+    return useCallback(
+        (...[url, config]: Parameters<typeof http>) => http(url, { ...config, token: user?.token }),
+        [user?.token]
+    )
 }

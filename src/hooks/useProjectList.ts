@@ -1,22 +1,20 @@
 import { useHttp } from "api/http"
-import { useEffect } from "react"
-import { ListItemProps, ParamProps } from "screens/ProjectList"
+import { useCallback, useEffect } from "react"
+import { ListItemProps } from "screens/ProjectList"
 import { cleanObject } from "utils"
 import { useAsync } from "./useAsync"
 
-export const useProjectList = (parama: ParamProps) => {
+export const useProjectList = (param: Partial<ListItemProps>) => {
     const client = useHttp()
-    const { run, isLoading, isError, error, data: list } = useAsync<ListItemProps[]>()
+    const { run, ...result } = useAsync<ListItemProps[]>()
+    const fetchProjects = useCallback(
+        () => client(`projects`, { params: cleanObject(param) }),
+        [client, param]
+    )
     
     useEffect(() => {
-        run(client(`projects`, {params: cleanObject(parama)}))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [parama])
+        run(fetchProjects(), { retry: fetchProjects})
+    }, [param, fetchProjects, run])
 
-    return {
-        isError,
-        isLoading,
-        error,
-        list
-    }
+    return result
 }
