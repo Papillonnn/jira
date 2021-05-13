@@ -7,6 +7,7 @@ import styled from '@emotion/styled';
 import logo from 'assets/logo.svg'
 import left from 'assets/left.svg'
 import right from 'assets/right.svg'
+import { ErrorBox } from 'components/lib';
 
 const LoginScreen = () => {
     const [isRegister, setIsRegister] = useState(true)
@@ -23,7 +24,7 @@ const LoginScreen = () => {
                 <Title>
                     {isRegister ? '请登录' : '请注册'}
                 </Title>
-                {error ? <Typography.Text type='danger' style={{paddingBottom: '12px'}}>{error.message}</Typography.Text> : null}
+                <ErrorBox error={error} />
                 {isRegister ? <LoginComponent onError={setError} /> : <RegisterComponent onError={setError} />}
                 <Divider />
                 <Toggle

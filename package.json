@@ -20,6 +20,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-helmet": "^6.1.0",
+    "react-query": "^3.16.0",
     "react-router": "^6.0.0-beta.0",
     "react-router-dom": "^6.0.0-beta.0",
     "react-scripts": "4.0.3",
@@ -31,7 +32,7 @@
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
-    "json-server": "json-server __json_server_mock__/db.json --watch --port 3004 --delay 2000 --middlewares ./__json_server_mock__/middleware.js"
+    "json-server": "json-server __json_server_mock__/db.json --watch --port 3004 --delay 100 --middlewares ./__json_server_mock__/middleware.js"
   },
   "eslintConfig": {
     "extends": [

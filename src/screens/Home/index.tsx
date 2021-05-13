@@ -6,25 +6,26 @@ import { BrowserRouter as Router } from 'react-router-dom'
 import ProjectList from 'screens/ProjectList'
 import ProjectScreen from 'screens/Project'
 import { useLogin } from 'context/LoginContext'
-import { Row } from 'components/lib'
+import { ButtonNoPadding, Row } from 'components/lib'
 import { resetRoute, useDocumentTitle } from 'utils'
 import { ReactComponent as SoftwareLogo } from 'assets/software-logo.svg'
-
+import ProjectModal from 'screens/ProjectList/ProjectModal'
+import ProjectPopover from 'components/ProjectPopover'
 
 const HomeScreen = () => {
-    
     return (
         <Container>
-            <PageHeader />
-            <Main>
-                <Router>
+            <Router>
+                <PageHeader />
+                <Main>
                     <Routes>
                         <Route path={'/projects'} element={<ProjectList />}></Route>
                         <Route path={'/projects/:projectId/*'} element={<ProjectScreen />}></Route>
-                        <Navigate to={'/projects'}/>
+                        <Navigate to={'/projects'} />
                     </Routes>
-                </Router>
-            </Main>
+                </Main>
+                <ProjectModal />
+            </Router>
         </Container>
     )
 }
@@ -35,13 +36,13 @@ const PageHeader = () => {
     return (
         <Header between={true}>
             <HeaderLeft gap={true}>
-                <Button type='link' onClick={resetRoute}>
+                <ButtonNoPadding type='link' onClick={resetRoute}>
                     <SoftwareLogo
                         width={'18rem'}
                         color={'rgb(38, 132, 255)'}
                     ></SoftwareLogo>
-                </Button>
-                <h3>项目</h3>
+                </ButtonNoPadding>
+                <ProjectPopover />
                 <h3>用户</h3>
             </HeaderLeft>
             <HeaderRight>

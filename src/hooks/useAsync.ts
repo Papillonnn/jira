@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useReducer, useState } from "react"
 import { useMountedRef } from "utils"
 
 interface State<D> {
@@ -17,34 +17,47 @@ const defaultConfig = {
     throwOnError: false
 }
 
+/**
+ * 组件处于挂载状态时才进行操作
+ * @param dispatch 
+ * @returns 
+ */
+const useSafeDispatch = <T>(dispatch: (...args: T[]) => void) => {
+    const mountedRef = useMountedRef()
+    return useCallback(
+        (...args: T[]) => (mountedRef.current ? dispatch(...args) : void 0),
+        [dispatch, mountedRef]
+    )
+}
+
 export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defaultConfig) => {
     const config = {
         ...defaultConfig,
         ...initialConfig
     }
-    const [state, setState] = useState<State<D>>({
-        ...defaultInitialState,
-        ...initialState
-    })
+    const [state, dispatch] = useReducer(
+        (state: State<D>, action: Partial<State<D>>) => ({ ...state, ...action}),
+        {...defaultInitialState, ...initialState}
+    )
+    const safeDispatch = useSafeDispatch(dispatch)
     const [retry, setRetry] = useState(() => () => { })
-    const mountedRef = useMountedRef()
 
     const setData = useCallback(
-        (data: D) => setState({
+        (data: D) => safeDispatch({
             data,
             status: 'success',
             error: null
         }),
-        []
+        [safeDispatch]
     )
 
     const setError = useCallback(
-        (error: Error) => setState({
+        (error: Error) => safeDispatch({
             data: null,
             status: 'error',
             error
         }),
-        []
+        [safeDispatch]
     )
 
     const run = useCallback(
@@ -52,20 +65,15 @@ export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defa
             if (!promise || !promise.then) {
                 throw new Error('请传入Promise类型的数据')
             }
+            safeDispatch({ status: 'loading' })
+
             setRetry(() => () => {
                 if (runConfig?.retry) {
                     run(runConfig?.retry(), runConfig)
                 }
             })
-            setState(prevState => ({
-                ...prevState,
-                status: 'loading'
-            }))
             return promise.then(data => {
-                // 组件处于挂载状态时才setData
-                if (mountedRef.current) {
-                    setData(data)
-                }
+                setData(data)
                 return data
             }).catch(error => {
                 // catch会消化异常，如果不主动抛出，外面是接收不到异常的
@@ -76,7 +84,7 @@ export const useAsync = <D>(initialState?: State<D>, initialConfig?: typeof defa
                 return error
             })
         },
-        [config.throwOnError, mountedRef, setData, setError]
+        [config.throwOnError, safeDispatch, setData, setError]
     )
 
     return {

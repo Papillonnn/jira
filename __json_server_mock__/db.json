@@ -43,7 +43,7 @@
       "personId": 2,
       "organization": "团购组",
       "created": 1604989757140,
-      "pin": false
+      "pin": true
     },
     {
       "id": 3,
@@ -59,7 +59,7 @@
       "personId": 4,
       "organization": "商家组",
       "created": 1604989757140,
-      "pin": true
+      "pin": false
     },
     {
       "id": 5,
@@ -67,7 +67,7 @@
       "personId": 5,
       "organization": "后勤组",
       "created": 1604989757140,
-      "pin": false
+      "pin": true
     }
   ]
 }

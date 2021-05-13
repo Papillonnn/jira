@@ -25,7 +25,7 @@ export const http = async (url: string, { params, token, ...customConfig }: Conf
         config.data = JSON.stringify(params || {})
     }
     return axios(`${baseUrl}${url}`, config).then(async (res: AxiosResponse) => {
-        if (res.status === 200) {
+        if (res.status === 200 || res.status === 201) {
             return res.data
         } else {
             return Promise.reject(res.data)

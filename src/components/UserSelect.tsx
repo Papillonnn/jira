@@ -3,7 +3,7 @@ import { UserProps } from 'screens/ProjectList';
 import IdSelector from './IdSelector';
 
 interface UserSelectProps extends React.ComponentProps<typeof IdSelector> {
-    users: UserProps[];
+    users?: UserProps[];
 }
 
 const UserSelect: React.FC<UserSelectProps> = (props) => {

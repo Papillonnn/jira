@@ -3,9 +3,11 @@ import List from './List';
 import SearchPanel from './SearchPanel';
 import { useDebounce } from 'utils';
 import styled from '@emotion/styled';
-import { useProjectList } from 'hooks/useProjectList';
+import { useProjectList } from 'hooks/project';
 import { useUserList } from 'hooks/useUserList';
-import { useProjectSearchParams } from 'hooks/useProjectSearchParams';
+import { useProjectModal, useProjectSearchParams } from './utils';
+import { ErrorBox, Row } from 'components/lib';
+import { Button } from 'antd';
 
 export interface ListItemProps {
     id: number;
@@ -29,24 +31,28 @@ const ProjectList = () => {
     // 非组件状态的对象 不能放到依赖里
     // https://codesandbox.io/s/keen-wave-tlz9s?file=/src/App.js
     const [param, setParam] = useProjectSearchParams()
+    const { open } = useProjectModal()
     const debouncedValue = useDebounce(param, 200)
     const { users } = useUserList()
-    const { isError, isLoading, error, data: list, retry } = useProjectList(debouncedValue)
+    const { isLoading, error, data: list } = useProjectList(debouncedValue)
 
     return (
         <Container>
-            <h1>项目列表</h1>
+            <Row between={true}>
+                <h1>项目列表</h1>
+                <Button onClick={open}>创建项目</Button>
+            </Row>
             <SearchPanel    
                 users={users || []}
                 param={param}
                 setParam={setParam}
             />
-            {isError ? error?.message : null}
+            <ErrorBox error={error} />
             <List
                 loading={isLoading}
                 dataSource={list || []}
                 users={users || []}
-                retry={retry}
+                // retry={retry}
             />
         </Container>
     )
